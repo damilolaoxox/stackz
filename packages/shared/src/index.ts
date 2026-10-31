@@ -1,3 +1,4 @@
 export * from "./schemas";
 export * from "./api";
 export * from "./brand";
+export * from "./character";

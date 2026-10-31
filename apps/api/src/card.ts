@@ -117,6 +117,92 @@ function barcode(handle: string): El {
   return div({ flexDirection: "row", alignItems: "flex-end" }, bars);
 }
 
+/** Rectangle with two-step pixel corners, as three overlapping absolute boxes. */
+function stepped(x: number, y: number, w: number, h: number, step: number, color: string): El[] {
+  const box = (l: number, t: number, bw: number, bh: number) =>
+    div({ position: "absolute", left: l, top: t, width: bw, height: bh, backgroundColor: color });
+  return [
+    box(x + step * 2, y, w - step * 4, h),
+    box(x + step, y + step, w - step * 2, h - step * 2),
+    box(x, y + step * 2, w, h - step * 4),
+  ];
+}
+
+const STAMP_W = 264;
+const STAMP_H = 152;
+
+/**
+ * The rubber stamp pressed onto the avatar's corner: pixel-cornered like a block, a T-piece mark,
+ * PENDING on an inked band, and worn ink that differs per handle.
+ */
+function stamp(handle: string): El {
+  const r = rng(hash(`stamp:${handle}`));
+  const ink = palette.tomato;
+  const paper = palette.cream;
+  const step = 6;
+  const mono = { fontFamily: fonts.mono, fontWeight: 700, color: ink, letterSpacing: 3 };
+
+  const specks: El[] = [];
+  for (let i = 0; i < 30; i++) {
+    const s = [2, 3, 4, 5][Math.floor(r() * 4)]!;
+    specks.push(
+      div({
+        position: "absolute",
+        left: Math.floor(7 + r() * (STAMP_W - 14 - s)),
+        top: Math.floor(7 + r() * (STAMP_H - 14 - s)),
+        width: s,
+        height: s,
+        backgroundColor: r() < 0.8 ? paper : ink,
+      }),
+    );
+  }
+
+  const tPiece = div(
+    { position: "relative", width: 20, height: 13, marginRight: 8 },
+    [
+      [0, 0],
+      [1, 0],
+      [2, 0],
+      [1, 1],
+    ].map(([x, y]) =>
+      div({ position: "absolute", left: x! * 7, top: y! * 7, width: 6, height: 6, backgroundColor: ink }),
+    ),
+  );
+
+  const row = (top: number, height: number, children: Child | Child[]) =>
+    div(
+      { position: "absolute", left: 0, top, width: STAMP_W, height, alignItems: "center", justifyContent: "center" },
+      children,
+    );
+
+  return div(
+    {
+      position: "absolute",
+      left: 168,
+      top: 362,
+      width: STAMP_W,
+      height: STAMP_H,
+      transform: "rotate(-10deg)",
+      opacity: 0.96,
+    },
+    [
+      ...stepped(0, 0, STAMP_W, STAMP_H, step, ink),
+      ...stepped(7, 7, STAMP_W - 14, STAMP_H - 14, step, paper),
+      ...stepped(13, 13, STAMP_W - 26, STAMP_H - 26, step, ink),
+      ...stepped(16, 16, STAMP_W - 32, STAMP_H - 32, step, paper),
+      row(24, 20, [tPiece, text({ ...mono, fontSize: 13 }, "STACKZ · SEASON 0")]),
+      div({ position: "absolute", left: 16, top: 52, width: STAMP_W - 32, height: 52, backgroundColor: ink }),
+      row(
+        52,
+        52,
+        text({ fontFamily: fonts.display, fontSize: 38, lineHeight: 1, letterSpacing: 3, color: paper }, "PENDING"),
+      ),
+      row(108, 20, text({ ...mono, fontSize: 12 }, "WAITING FOR THE DROP")),
+      ...specks,
+    ],
+  );
+}
+
 /** Landed pile along the bottom edge. */
 function pile(handle: string): El {
   const r = rng(hash(`pile:${handle}`));
@@ -182,7 +268,6 @@ export function cardElement({ handle, avatar }: CardInput): El {
               text({ ...mono, fontSize: 26, fontWeight: 700, letterSpacing: 3, marginRight: 20 }, "TASKS 4/4"),
               ...TASKS.map((t) => block(34, TASK_COLORS[t], { marginRight: 8 })),
             ]),
-            text({ ...mono, fontSize: 22, letterSpacing: 3, color: palette.tomato, marginTop: 20 }, "SPOT PENDING"),
           ]),
         ]),
 
@@ -194,6 +279,8 @@ export function cardElement({ handle, avatar }: CardInput): El {
       ]),
 
       pile(handle),
+      // Last, so it sits on top of the avatar frame and the barcode.
+      stamp(handle),
     ],
   );
 }

@@ -1,0 +1,10 @@
+// Cloudflare static assets. Deploys ONLY from the `live` branch (set the production branch in the
+// Cloudflare dashboard). Build command: pnpm --filter @stackz/web build. Output: apps/web/dist.
+{
+  "name": "stackz-web",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "single-page-application",
+  },
+}
