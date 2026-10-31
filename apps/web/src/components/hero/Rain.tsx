@@ -18,7 +18,17 @@ interface Piece {
 function buildRain(): Piece[] {
   const rnd = seeded(11);
   const pieces: Piece[] = [];
-  const add = (x: number, size: number, type: PieceType, color: string, dur: number, delay: number, opacity: number, timing: string, rotate: boolean) =>
+  const add = (
+    x: number,
+    size: number,
+    type: PieceType,
+    color: string,
+    dur: number,
+    delay: number,
+    opacity: number,
+    timing: string,
+    rotate: boolean,
+  ) =>
     pieces.push({
       x: Math.round(x),
       size,
@@ -63,7 +73,13 @@ export const Rain = memo(function Rain() {
             <span
               key={j}
               className="blk"
-              style={{ left: cx * p.size, top: cy * p.size, width: p.size - 2, height: p.size - 2, background: p.color }}
+              style={{
+                left: cx * p.size,
+                top: cy * p.size,
+                width: p.size - 2,
+                height: p.size - 2,
+                background: p.color,
+              }}
             />
           ))}
         </div>

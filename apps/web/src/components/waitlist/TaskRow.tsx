@@ -48,13 +48,21 @@ export function TaskRow({ task, index, label, color, view, onGo, onConfirm }: Pr
           <span
             key={`${state}-${i}`}
             className="task__block"
-            style={{ animationDelay: state === "charging" ? `${i * 0.35}s` : state === "done" ? `${i * 0.04}s` : undefined }}
+            style={{
+              animationDelay: state === "charging" ? `${i * 0.35}s` : state === "done" ? `${i * 0.04}s` : undefined,
+            }}
           />
         ))}
       </span>
       <span className="task__action">
         {state === "idle" && (
-          <button type="button" className="task__btn" onClick={() => onGo(task)} disabled={view.busy} aria-describedby={`task-${task}`}>
+          <button
+            type="button"
+            className="task__btn"
+            onClick={() => onGo(task)}
+            disabled={view.busy}
+            aria-describedby={`task-${task}`}
+          >
             GO
           </button>
         )}

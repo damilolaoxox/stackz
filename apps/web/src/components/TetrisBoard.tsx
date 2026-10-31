@@ -25,7 +25,16 @@ function playEvents(events: EngineEvent[], musicTime: number | null) {
 }
 
 /** A real, self-playing Tetris board. With reduced motion it shows a still board. */
-export function TetrisBoard({ cell, rows, tickMs, skill, garbage = false, label = "", labelColor, musical = false }: Props) {
+export function TetrisBoard({
+  cell,
+  rows,
+  tickMs,
+  skill,
+  garbage = false,
+  label = "",
+  labelColor,
+  musical = false,
+}: Props) {
   const reduced = useReducedMotion();
   const [ref, inView] = useInView<HTMLDivElement>();
   const engine = useEngine({
@@ -52,7 +61,10 @@ export function TetrisBoard({ cell, rows, tickMs, skill, garbage = false, label 
         <span>
           LINES <b>{String(engine.lines).padStart(3, "0")}</b>
         </span>
-        <span className={topped ? "board__label board__label--out" : "board__label"} style={topped ? undefined : { color: labelColor }}>
+        <span
+          className={topped ? "board__label board__label--out" : "board__label"}
+          style={topped ? undefined : { color: labelColor }}
+        >
           {topped ? "TOPPED OUT" : label}
         </span>
       </div>
@@ -60,7 +72,11 @@ export function TetrisBoard({ cell, rows, tickMs, skill, garbage = false, label 
         {view.map((row, y) => (
           <div className="board__row" key={y}>
             {row.map((c, x) => (
-              <span key={x} className={`board__cell is-${c.kind}`} style={c.color ? cssVars({ "--c": c.color }) : undefined} />
+              <span
+                key={x}
+                className={`board__cell is-${c.kind}`}
+                style={c.color ? cssVars({ "--c": c.color }) : undefined}
+              />
             ))}
           </div>
         ))}

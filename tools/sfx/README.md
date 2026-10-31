@@ -4,14 +4,14 @@
 
 The music follows the hero board: one game tick (90 ms) is one 16th note, so the tempo is 166.67 BPM.
 
-| Output            | What it is                                                          |
-| ----------------- | ------------------------------------------------------------------- |
-| `theme-intro.mp3` | 5.76 s (4 bars) that build up, played once                          |
-| `theme-loop.mp3`  | 23.04 s (16 bars), loops seamlessly after the intro                 |
-| `click.mp3`       | Button and link presses                                             |
-| `lock.mp3`        | A piece locking on the hero board                                   |
-| `line-clear.mp3`  | Lines clearing on the hero board                                    |
-| `task-done.mp3`   | A waitlist task powering up to DONE, and a successful join          |
+| Output            | What it is                                                 |
+| ----------------- | ---------------------------------------------------------- |
+| `theme-intro.mp3` | 5.76 s (4 bars) that build up, played once                 |
+| `theme-loop.mp3`  | 23.04 s (16 bars), loops seamlessly after the intro        |
+| `click.mp3`       | Button and link presses                                    |
+| `lock.mp3`        | A piece locking on the hero board                          |
+| `line-clear.mp3`  | Lines clearing on the hero board                           |
+| `task-done.mp3`   | A waitlist task powering up to DONE, and a successful join |
 
 To regenerate (needs Python 3 with numpy and scipy, plus ffmpeg):
 

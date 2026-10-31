@@ -15,14 +15,23 @@ export function AvatarBox({ handle, url }: Props) {
   if (!handle) {
     return (
       <span className="avatar avatar--empty" role="img" aria-label="Your X profile picture appears here">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+        <svg
+          width="28"
+          height="28"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          aria-hidden="true"
+        >
           <rect x="8" y="3" width="8" height="8" />
           <path d="M4 21v-3a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v3" />
         </svg>
       </span>
     );
   }
-  if (url === undefined) return <span className="avatar avatar--loading" role="img" aria-label="Loading profile picture" />;
+  if (url === undefined)
+    return <span className="avatar avatar--loading" role="img" aria-label="Loading profile picture" />;
 
   const usable = url && failed !== url ? url : null;
   return (

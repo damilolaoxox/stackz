@@ -87,7 +87,9 @@ export const BlockHeadline = memo(function BlockHeadline() {
                 style={cssVars({ "--x": b.x, "--y": b.y }, { background: b.color, animationDelay: b.delay })}
               />
             ))}
-            {line.dotX !== undefined && <span className="blk headline__dot" style={cssVars({ "--x": line.dotX, "--y": 6 })} />}
+            {line.dotX !== undefined && (
+              <span className="blk headline__dot" style={cssVars({ "--x": line.dotX, "--y": 6 })} />
+            )}
           </span>
         ))}
       </span>

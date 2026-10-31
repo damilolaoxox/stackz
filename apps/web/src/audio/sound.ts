@@ -60,7 +60,8 @@ class SoundEngine {
       if (this.ctx.state === "suspended") void this.ctx.resume();
       return;
     }
-    const Ctor = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    const Ctor =
+      window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
     if (!Ctor) return;
     const ctx = new Ctor();
     this.ctx = ctx;
@@ -166,6 +167,7 @@ const CLICKABLE = "button, a, [data-sfx]";
 /**
  * The only place sounds are triggered by the visitor. Rules:
  * - Pointer presses only. There are no keyboard listeners, so typing, Enter, Space and Tab never click.
+ * - pointerup only resumes the audio context (mobile unlocks on touch end); it never plays a sound itself.
  * - A press inside a text field never clicks and never starts the music.
  * - The click plays only on buttons, links and [data-sfx] elements that are not disabled.
  */
@@ -181,6 +183,15 @@ export function installSoundTriggers(): () => void {
     if (control.getAttribute("aria-disabled") === "true") return;
     sound.play("click");
   };
+  // Mobile Safari and Chrome only unlock audio at the end of a touch, so resume there too.
+  // Same text-field rule; never plays the click.
+  const onPointerUp = (e: PointerEvent) => {
+    if (e.target instanceof Element && !e.target.closest(TEXT_FIELD)) sound.unlock();
+  };
   document.addEventListener("pointerdown", onPointerDown, { capture: true, passive: true });
-  return () => document.removeEventListener("pointerdown", onPointerDown, { capture: true });
+  document.addEventListener("pointerup", onPointerUp, { capture: true, passive: true });
+  return () => {
+    document.removeEventListener("pointerdown", onPointerDown, { capture: true });
+    document.removeEventListener("pointerup", onPointerUp, { capture: true });
+  };
 }

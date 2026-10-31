@@ -34,7 +34,9 @@ export function Hero() {
           <span>SEASON 0 · TICKETS OPEN</span>
         </div>
         <BlockHeadline />
-        <p className="hero__sub">Real-time Tetris where the crowd puts tokens on every match. Play it, back it, or both.</p>
+        <p className="hero__sub">
+          Real-time Tetris where the crowd puts tokens on every match. Play it, back it, or both.
+        </p>
         <div>
           <a href="#waitlist" className="btn btn--primary">
             Join the waitlist

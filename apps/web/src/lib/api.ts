@@ -37,7 +37,8 @@ async function request<T>(path: string, init?: { method: "POST"; body: unknown }
   }
   const data: unknown = await res.json().catch(() => null);
   if (!res.ok) {
-    const body = data && typeof data === "object" && "error" in data ? (data as ApiError) : { error: "internal" as const };
+    const body =
+      data && typeof data === "object" && "error" in data ? (data as ApiError) : { error: "internal" as const };
     throw new ApiRequestError(res.status, body);
   }
   return data as T;

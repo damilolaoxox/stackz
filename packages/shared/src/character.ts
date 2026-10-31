@@ -54,7 +54,13 @@ export function characterCells(t: Traits): (string | null)[][] {
       }),
     );
   const headRow = "...HHHHHHHHHD...";
-  put(4, [...Array<string>(8).fill(headRow), "....DDDDDDDD....", "......HHHD......", "..KKKKKKKKKKKK..", "..KKKKKKKKKKKK.."]);
+  put(4, [
+    ...Array<string>(8).fill(headRow),
+    "....DDDDDDDD....",
+    "......HHHD......",
+    "..KKKKKKKKKKKK..",
+    "..KKKKKKKKKKKK..",
+  ]);
   put(7, EYES[t.eyes]);
   put(10, MOUTHS[t.mouth]);
   put(HEADWEAR[t.headwear].row, HEADWEAR[t.headwear].lines);

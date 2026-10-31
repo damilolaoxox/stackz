@@ -4,7 +4,15 @@ import { Wordmark } from "./Wordmark";
 
 function SpeakerIcon({ muted }: { muted: boolean }) {
   return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      aria-hidden="true"
+    >
       <path d="M2 6h3l4-3v10l-4-3H2z" fill="currentColor" stroke="none" />
       {muted ? <path d="M11 6l4 4M15 6l-4 4" /> : <path d="M11.5 5.5a3.5 3.5 0 0 1 0 5M13.5 3.5a6.5 6.5 0 0 1 0 9" />}
     </svg>

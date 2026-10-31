@@ -36,7 +36,15 @@ export const NextPreview = memo(function NextPreview() {
 const DIGITS = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
 
 /** A digit that rolls through 0-9 on a stepped loop. */
-export function RollingDigit({ seconds, count = 10, accent = false }: { seconds: number; count?: 3 | 6 | 10; accent?: boolean }) {
+export function RollingDigit({
+  seconds,
+  count = 10,
+  accent = false,
+}: {
+  seconds: number;
+  count?: 3 | 6 | 10;
+  accent?: boolean;
+}) {
   return (
     <span className={accent ? "roll roll--accent" : "roll"} aria-hidden="true">
       <span className={`roll__col roll__col--${count}`} style={{ animationDuration: `${seconds}s` }}>

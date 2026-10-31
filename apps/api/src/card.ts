@@ -164,7 +164,9 @@ function stamp(handle: string): El {
       [1, 0],
       [2, 0],
       [1, 1],
-    ].map(([x, y]) => div({ position: "absolute", left: x! * 7, top: y! * 7, width: 6, height: 6, backgroundColor: ink })),
+    ].map(([x, y]) =>
+      div({ position: "absolute", left: x! * 7, top: y! * 7, width: 6, height: 6, backgroundColor: ink }),
+    ),
   );
 
   const row = (top: number, height: number, children: Child | Child[]) =>
@@ -190,7 +192,11 @@ function stamp(handle: string): El {
       ...stepped(16, 16, STAMP_W - 32, STAMP_H - 32, step, paper),
       row(24, 20, [tPiece, text({ ...mono, fontSize: 13 }, "STACKZ · SEASON 0")]),
       div({ position: "absolute", left: 16, top: 52, width: STAMP_W - 32, height: 52, backgroundColor: ink }),
-      row(52, 52, text({ fontFamily: fonts.display, fontSize: 38, lineHeight: 1, letterSpacing: 3, color: paper }, "PENDING")),
+      row(
+        52,
+        52,
+        text({ fontFamily: fonts.display, fontSize: 38, lineHeight: 1, letterSpacing: 3, color: paper }, "PENDING"),
+      ),
       row(108, 20, text({ ...mono, fontSize: 12 }, "WAITING FOR THE DROP")),
       ...specks,
     ],
