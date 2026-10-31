@@ -51,7 +51,7 @@ Build the waitlist site first. Game, betting and minting come later. Do not buil
 5. **Footer:** links to X, Community and Privacy, above a huge cropped STACKZ wordmark with pieces landing on it.
 6. **After joining:**
    - **Copy:** "You're on the list", the heading "Your spot is pending.", "Your Stackz card. Share it and bring your friends into Season 0." and "We'll reach out on X when Season 0 opens."
-   - **Shareable card (1200×630, rendered by the API):** their X profile picture in a yellow block frame (or their 16×16 block character, picked from their handle, if it can't be fetched), "PLAYER" and @handle, the four tasks as full power bars, and a tilted ADMIT ONE stamp: a ring of red tetrominoes around "S0" in block letters with ON THE LIST underneath, with a few blocks missing like uneven ink. No spot number: it stays internal.
+   - **Shareable card (1200×630, rendered by the API):** their X profile picture in a yellow block frame (block avatar if it can't be fetched), "PLAYER", @handle and TASKS 4/4, with a rubber stamp pressed onto the avatar's corner: pixel-stepped corners like a block, a T-piece mark, "STACKZ · SEASON 0", PENDING on a red ink band and "WAITING FOR THE DROP", with worn ink that differs per handle. Never copy another project's stamp (no round badges). No spot number: it stays internal.
    - **Buttons:** Share on X, Copy image, Download, and a "Not you?" link.
 
 ### Task power bars (required behaviour)
