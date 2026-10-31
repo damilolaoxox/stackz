@@ -1,0 +1,24 @@
+name: Supabase migrations
+
+# Production migrations run only from `live`, never from `main`.
+on:
+  push:
+    branches: [live]
+    paths: ["supabase/migrations/**"]
+  workflow_dispatch:
+
+concurrency: supabase-migrations
+
+jobs:
+  migrate:
+    if: github.ref == 'refs/heads/live'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - run: supabase db push --db-url "$SUPABASE_DB_URL"
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}

@@ -1,0 +1,36 @@
+# Render Blueprint. Deploys ONLY from the `live` branch. Work happens on `main`.
+services:
+  - type: web
+    name: stackz-api
+    runtime: node
+    plan: starter
+    branch: live
+    autoDeploy: true
+    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm --filter @stackz/api build
+    startCommand: pnpm --filter @stackz/api start
+    healthCheckPath: /healthz
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: "24"
+      - key: STORE
+        value: supabase
+      - key: TASK_MIN_SECONDS
+        value: "8"
+      - key: SUPABASE_CARDS_BUCKET
+        value: cards
+      - key: ALLOWED_ORIGINS
+        sync: false
+      - key: SITE_URL
+        sync: false
+      - key: PUBLIC_API_URL
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: TURNSTILE_SECRET_KEY
+        sync: false
+      - key: UNAVATAR_API_KEY
+        sync: false
