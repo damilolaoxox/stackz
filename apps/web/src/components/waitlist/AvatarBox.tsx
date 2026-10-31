@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { characterImage, DEFAULT_AVATAR } from "../../lib/character";
+import { traitsForHandle } from "@stackz/shared";
+import { characterImage } from "../../lib/character";
 
 interface Props {
   handle: string | null;
@@ -27,7 +28,7 @@ export function AvatarBox({ handle, url }: Props) {
   return (
     <span className="avatar">
       <img
-        src={usable ?? characterImage(DEFAULT_AVATAR, 128)}
+        src={usable ?? characterImage(traitsForHandle(handle), 128)}
         alt={usable ? `@${handle}'s X profile picture` : "Stackz block avatar"}
         width={64}
         height={64}

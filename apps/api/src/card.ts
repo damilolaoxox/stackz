@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import satori from "satori";
 import { Resvg } from "@resvg/resvg-js";
-import { fonts, palette, TASK_COLORS, TASKS } from "@stackz/shared";
+import { characterCells, fonts, palette, TASK_COLORS, TASKS, traitsForHandle } from "@stackz/shared";
 
 export const CARD_WIDTH = 1200;
 export const CARD_HEIGHT = 630;
@@ -81,40 +81,104 @@ function rng(seed: number) {
   };
 }
 
-const HEAD_COLORS = [palette.cream, palette.yellow, palette.cobalt, palette.tomato, palette.mint];
 const BLOCK_COLORS = [palette.yellow, palette.cobalt, palette.tomato, palette.mint, palette.cream];
 
-/** 8×8 block face used when the X profile picture can't be fetched. */
+/** The site's 16×16 block character, used when the X profile picture can't be fetched. */
 function blockAvatar(handle: string, size: number): El {
-  const r = rng(hash(handle));
-  const pick = <T>(xs: readonly T[]) => xs[Math.floor(r() * xs.length)]!;
-  const head = pick(HEAD_COLORS);
-  const shirt = pick(BLOCK_COLORS.filter((c) => c !== head));
-  const cell = size / 8;
-  const rows: El[] = [];
-  for (let y = 0; y < 8; y++) {
-    const cells: El[] = [];
-    for (let x = 0; x < 8; x++) {
-      let color: string | null = null;
-      if (y >= 1 && y <= 5 && x >= 1 && x <= 6) color = head;
-      if (y === 2 && (x === 2 || x === 5)) color = palette.deepGround;
-      if (y === 4 && (x === 3 || x === 4)) color = palette.deepGround;
-      if (y >= 6) color = shirt;
-      cells.push(color ? block(cell, color) : div({ width: cell, height: cell }));
-    }
-    rows.push(div({ flexDirection: "row" }, cells));
-  }
-  return div({ flexDirection: "column", width: size, height: size, backgroundColor: palette.garbage }, rows);
+  const traits = traitsForHandle(handle);
+  const cell = size / 16;
+  const blocks: El[] = [];
+  characterCells(traits).forEach((row, y) =>
+    row.forEach((color, x) => {
+      if (color) blocks.push(block(cell, color, { position: "absolute", left: x * cell, top: y * cell }));
+    }),
+  );
+  return div({ position: "relative", width: size, height: size, backgroundColor: traits.bg }, blocks);
 }
 
-/** Block barcode. Purely decorative: no digits, no spot number. */
-function barcode(handle: string): El {
-  const r = rng(hash(`bar:${handle}`));
-  const bars: El[] = [];
-  for (let i = 0; i < 34; i++) {
-    bars.push(div({ width: 4 + Math.floor(r() * 3) * 4, height: 56, backgroundColor: palette.cream, marginRight: 6 }));
-  }
-  return div({ flexDirection: "row", alignItems: "flex-end" }, bars);
+/** 5×7 block glyphs for the stamp. */
+const GLYPHS: Record<string, string[]> = {
+  S: [".####", "#....", "#....", ".###.", "....#", "....#", "####."],
+  "0": [".###.", "#...#", "#..##", "#.#.#", "##..#", "#...#", ".###."],
+};
+
+const INK = palette.tomato;
+const INK_DARK = "#C9432B";
+
+/**
+ * The stamp: a square ring of tetrominoes around "S0" in block letters, tilted like it was
+ * pressed by hand. A few blocks are missing per handle, like ink that didn't take.
+ */
+function stamp(handle: string): El {
+  const r = rng(hash(`stamp:${handle}`));
+  const C = 24;
+  const N = 12;
+  const S = C * N;
+
+  // Walk the ring clockwise; every 4 cells is one I or L piece, shaded alternately so the seams show.
+  const path: [number, number][] = [];
+  for (let x = 0; x < N; x++) path.push([x, 0]);
+  for (let y = 1; y < N; y++) path.push([N - 1, y]);
+  for (let x = N - 2; x >= 0; x--) path.push([x, N - 1]);
+  for (let y = N - 2; y >= 1; y--) path.push([0, y]);
+  const ring = path
+    .map(([x, y], i) =>
+      r() < 0.07 ? null : block(C, Math.floor(i / 4) % 2 ? INK_DARK : INK, { position: "absolute", left: x * C, top: y * C }),
+    )
+    .filter((b): b is El => b !== null);
+
+  const G = 16;
+  const letters: El[] = [];
+  ["S", "0"].forEach((ch, li) =>
+    GLYPHS[ch]!.forEach((row, y) =>
+      [...row].forEach((v, x) => {
+        if (v === "#" && r() > 0.06) {
+          letters.push(block(G, INK, { position: "absolute", left: (li * 6 + x) * G, top: y * G }));
+        }
+      }),
+    ),
+  );
+
+  const label = { fontFamily: fonts.mono, fontWeight: 700, fontSize: 17, letterSpacing: 4, color: INK };
+  return div(
+    { position: "absolute", right: 72, top: 150, width: S, height: S, transform: "rotate(-9deg)", opacity: 0.95 },
+    [
+      ...ring,
+      div(
+        {
+          position: "absolute",
+          left: C,
+          top: C,
+          width: S - C * 2,
+          height: S - C * 2,
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+        },
+        [
+          text(label, "ADMIT ONE"),
+          div({ position: "relative", width: 11 * G, height: 7 * G, marginTop: 14, marginBottom: 14 }, letters),
+          text(label, "ON THE LIST"),
+        ],
+      ),
+    ],
+  );
+}
+
+/** The four waitlist tasks as full power bars, the same as the site after joining. */
+function taskBars(): El {
+  return div(
+    { flexDirection: "column" },
+    TASKS.map((t, i) =>
+      div({ flexDirection: "row", alignItems: "center", marginTop: i ? 14 : 0 }, [
+        text(
+          { fontFamily: fonts.mono, fontWeight: 700, fontSize: 16, letterSpacing: 2, width: 128, color: palette.cream, opacity: 0.7 },
+          t.toUpperCase(),
+        ),
+        ...Array.from({ length: 10 }, () => block(20, TASK_COLORS[t], { marginRight: 4 })),
+      ]),
+    ),
+  );
 }
 
 /** Landed pile along the bottom edge. */
@@ -133,10 +197,11 @@ function pile(handle: string): El {
 }
 
 export function cardElement({ handle, avatar }: CardInput): El {
-  const avatarSize = 300;
+  const avatarSize = 272;
   const frame = 16;
   const handleText = `@${handle}`;
-  const handleSize = Math.min(84, Math.floor(620 / (handleText.length * 0.82)));
+  // The handle column is about 400px wide, between the avatar and the stamp.
+  const handleSize = Math.min(64, Math.floor(400 / (handleText.length * 0.78)));
   const mono = { fontFamily: fonts.mono };
 
   const picture = avatar
@@ -144,8 +209,7 @@ export function cardElement({ handle, avatar }: CardInput): El {
     : blockAvatar(handle, avatarSize);
 
   const inset = 64;
-  // Satori sizes boxes content-box, so the root has no padding; the content
-  // column is inset with margins instead.
+  // Satori sizes boxes content-box, so the root has no padding; content is inset with margins.
   return div(
     {
       position: "relative",
@@ -157,42 +221,34 @@ export function cardElement({ handle, avatar }: CardInput): El {
     },
     [
       div({ flexDirection: "column", width: CARD_WIDTH - inset * 2, marginLeft: inset, marginTop: 44 }, [
-        // Header: wordmark + season tag
-        div({ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }, [
-          div({ flexDirection: "row", fontSize: 56, letterSpacing: 2 }, [
-            "STACK",
-            text({ color: palette.yellow }, "Z"),
-          ]),
+        // Header: wordmark + card label
+        div({ flexDirection: "row", alignItems: "center" }, [
+          div({ flexDirection: "row", fontSize: 48, letterSpacing: 1 }, ["STACK", text({ color: palette.yellow }, "Z")]),
           text(
-            { ...mono, fontSize: 22, fontWeight: 700, color: palette.yellow, letterSpacing: 3 },
-            "SEASON 0 · ON THE LIST",
+            { ...mono, fontSize: 18, fontWeight: 700, color: palette.yellow, letterSpacing: 4, marginLeft: 28, marginTop: 10 },
+            "PLAYER CARD · SEASON 0",
           ),
         ]),
 
-        // Body: avatar + player panel
-        div({ flexDirection: "row", alignItems: "center", marginTop: 36 }, [
+        // Body: framed avatar + handle + task bars
+        div({ flexDirection: "row", alignItems: "flex-start", marginTop: 44 }, [
           div({ position: "relative", padding: frame, backgroundColor: palette.yellow }, [
             block(avatarSize + frame * 2, palette.yellow, { position: "absolute", left: 0, top: 0 }),
             div({ position: "relative", width: avatarSize, height: avatarSize }, [picture as El]),
           ]),
-          div({ flexDirection: "column", marginLeft: 56 }, [
-            text({ ...mono, fontSize: 22, letterSpacing: 4, color: palette.cream, opacity: 0.6 }, "PLAYER"),
-            text({ fontSize: handleSize, lineHeight: 1.1, marginTop: 8 }, handleText),
-            div({ flexDirection: "row", alignItems: "center", marginTop: 28 }, [
-              text({ ...mono, fontSize: 26, fontWeight: 700, letterSpacing: 3, marginRight: 20 }, "TASKS 4/4"),
-              ...TASKS.map((t) => block(34, TASK_COLORS[t], { marginRight: 8 })),
-            ]),
-            text({ ...mono, fontSize: 22, letterSpacing: 3, color: palette.tomato, marginTop: 20 }, "SPOT PENDING"),
+          div({ flexDirection: "column", marginLeft: 44, marginTop: 4 }, [
+            text({ ...mono, fontSize: 18, letterSpacing: 4, color: palette.cream, opacity: 0.6 }, "PLAYER"),
+            text({ fontSize: handleSize, lineHeight: 1.1, marginTop: 8, marginBottom: 30 }, handleText),
+            taskBars(),
           ]),
-        ]),
-
-        // Footer: barcode + line
-        div({ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end", marginTop: 28 }, [
-          barcode(handle),
-          text({ ...mono, fontSize: 20, letterSpacing: 2, opacity: 0.7 }, "THE BOARD IS THE BET."),
         ]),
       ]),
 
+      text(
+        { ...mono, position: "absolute", left: inset, bottom: 54, fontSize: 18, letterSpacing: 3, opacity: 0.7 },
+        "THE BOARD IS THE BET.",
+      ),
+      stamp(handle),
       pile(handle),
     ],
   );

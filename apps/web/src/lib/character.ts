@@ -1,65 +1,6 @@
-import { palette } from "@stackz/shared";
+import { characterCells, palette, type Traits } from "@stackz/shared";
 
-export type Head = "cream" | "yellow" | "blue" | "tomato" | "mint";
-export type Eyes = "shades" | "stare" | "visor" | "sleepy";
-export type Mouth = "grin" | "flat" | "gold";
-export type Headwear = "tpiece" | "crown" | "cap" | "none";
-
-export interface Traits {
-  bg: string;
-  head: Head;
-  eyes: Eyes;
-  mouth: Mouth;
-  headwear: Headwear;
-  hat: string;
-  shirt: string;
-}
-
-const HEADS: Record<Head, [face: string, shade: string]> = {
-  cream: [palette.cream, "#C9BEA6"],
-  yellow: [palette.yellow, "#C99A16"],
-  blue: [palette.cobalt, "#2A4DB0"],
-  tomato: [palette.tomato, "#B83A24"],
-  mint: [palette.mint, "#358A57"],
-};
-
-const EYES: Record<Eyes, [string, string]> = {
-  shades: ["...SSWSSSSWSD...", "...HSSSHHSSSD..."],
-  stare: ["...HBWHHHBWHD...", "...HBBHHHBBHD..."],
-  visor: ["...VVVVVVVVVD...", "...VVVVVVVVVD..."],
-  sleepy: ["...HHHHHHHHHD...", "...HBBBHHBBBD..."],
-};
-
-const MOUTHS: Record<Mouth, [string, string]> = {
-  grin: ["...HHMHHHHMHD...", "...HHHMMMMHHD..."],
-  flat: ["...HHHMMMMHHD...", "...HHHHHHHHHD..."],
-  gold: ["...HHHMMGMHHD...", "...HHHHHHHHHD..."],
-};
-
-const HEADWEAR: Record<Headwear, { row: number; lines: string[] }> = {
-  tpiece: { row: 2, lines: ["......XXX.......", ".......X........"] },
-  crown: { row: 1, lines: ["...X...X...X....", "...XX.XXX.XX....", "...XXXXXXXXX...."] },
-  cap: { row: 2, lines: ["...XXXXXXXXX....", "...XXXXXXXXXXXX."] },
-  none: { row: 0, lines: [] },
-};
-
-/** The 16×16 trait grid as letters; "." is background. */
-export function characterGrid(t: Traits): string[][] {
-  const g = Array.from({ length: 16 }, () => Array<string>(16).fill("."));
-  const put = (start: number, lines: string[]) =>
-    lines.forEach((line, i) =>
-      [...line].forEach((ch, c) => {
-        const row = g[start + i];
-        if (ch !== "." && row) row[c] = ch;
-      }),
-    );
-  const headRow = "...HHHHHHHHHD...";
-  put(4, [...Array<string>(8).fill(headRow), "....DDDDDDDD....", "......HHHD......", "..KKKKKKKKKKKK..", "..KKKKKKKKKKKK.."]);
-  put(7, EYES[t.eyes]);
-  put(10, MOUTHS[t.mouth]);
-  put(HEADWEAR[t.headwear].row, HEADWEAR[t.headwear].lines);
-  return g;
-}
+export type { Traits };
 
 const cache = new Map<string, string>();
 
@@ -68,20 +9,6 @@ export function characterImage(t: Traits, size = 320): string {
   const key = `${size}|${JSON.stringify(t)}`;
   const hit = cache.get(key);
   if (hit) return hit;
-
-  const [face, shade] = HEADS[t.head];
-  const colors: Record<string, string> = {
-    H: face,
-    D: shade,
-    K: t.shirt,
-    X: t.hat,
-    B: palette.ground,
-    W: "#FFFFFF",
-    S: palette.ground,
-    V: palette.tomato,
-    M: palette.ground,
-    G: palette.yellow,
-  };
 
   const canvas = document.createElement("canvas");
   canvas.width = size;
@@ -94,9 +21,8 @@ export function characterImage(t: Traits, size = 320): string {
     ctx.fillStyle = t.bg;
     ctx.fillRect(0, 0, size, size);
   }
-  characterGrid(t).forEach((row, y) =>
-    row.forEach((ch, x) => {
-      const color = colors[ch];
+  characterCells(t).forEach((row, y) =>
+    row.forEach((color, x) => {
       if (!color) return;
       const px = x * cell;
       const py = y * cell;
