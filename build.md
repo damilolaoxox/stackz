@@ -85,13 +85,14 @@ pnpm dev            # API on http://localhost:8787, site on http://localhost:517
 
 ## 3. What is left to build
 
-| Item                   | Notes                                                                                        |
-| ---------------------- | -------------------------------------------------------------------------------------------- |
-| `[SUPPLY]` placeholder | Shown on the Characters section until the NFT supply is decided.                             |
-| X links                | The task buttons fall back to x.com until `VITE_X_HANDLE` and `VITE_PINNED_POST_ID` are set. |
-| Community link         | Hidden until `VITE_COMMUNITY_URL` is set.                                                    |
+| Item           | Notes                                     |
+| -------------- | ----------------------------------------- |
+| Community link | Hidden until `VITE_COMMUNITY_URL` is set. |
 
 ### Done since the last update
+
+- **X account: [@playstackz](https://x.com/playstackz).** It's the default in `apps/web/src/lib/config.ts` (`VITE_X_HANDLE` can still override it). Follow opens X's one-click follow page; like, comment and repost open the profile, where the pinned post sits on top. No X API: CONFIRM counts once `TASK_MIN_SECONDS` (8 s, enforced by the API) have passed since GO. **Pin the launch post on @playstackz** so the tasks make sense.
+- **NFT supply: 1,500.** Shown on the Characters section.
 
 - **Privacy page** at `/privacy` (`apps/web/src/components/Privacy.tsx`). It describes only what the code does. **The owner should read it before launch**, and it must be updated whenever the site starts collecting or sharing something new.
 - **Admin review.** The API has `/admin` routes, switched on by setting `ADMIN_TOKEN` (32+ characters; off and 404 when unset). Review from a terminal:
@@ -115,11 +116,12 @@ pnpm dev            # API on http://localhost:8787, site on http://localhost:517
 
 ### Decisions and accounts (owner)
 
-- [ ] Domain name
-- [ ] The Stackz X account handle and the pinned post (its ID)
+- [ ] Domain name (last)
+- [x] X account: @playstackz
+- [ ] Pin the launch post on @playstackz
 - [ ] Community link (optional)
 - [ ] Token name and chain (an EVM chain)
-- [ ] NFT supply
+- [x] NFT supply: 1,500
 - [ ] Season 0 dates
 - [ ] **Legal advice on betting.** Crowd betting with a token that can be cashed out may count as regulated gambling in Nigeria and elsewhere. Don't build real-money betting until this is confirmed.
 
@@ -157,12 +159,12 @@ pnpm dev            # API on http://localhost:8787, site on http://localhost:517
 
 ### Cloudflare Pages (site)
 
-| Setting           | Value                                                                                                   |
-| ----------------- | ------------------------------------------------------------------------------------------------------- |
-| Production branch | `live`                                                                                                  |
-| Build command     | `pnpm --filter @stackz/web build`                                                                       |
-| Output directory  | `apps/web/dist`                                                                                         |
-| Build variables   | `VITE_API_URL`, `VITE_TURNSTILE_SITE_KEY`, `VITE_X_HANDLE`, `VITE_PINNED_POST_ID`, `VITE_COMMUNITY_URL` |
+| Setting           | Value                                                                                                             |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------- |
+| Production branch | `live`                                                                                                            |
+| Build command     | `pnpm --filter @stackz/web build`                                                                                 |
+| Output directory  | `apps/web/dist`                                                                                                   |
+| Build variables   | `VITE_API_URL`, `VITE_TURNSTILE_SITE_KEY`, `VITE_COMMUNITY_URL` (optional: `VITE_X_HANDLE`, default `playstackz`) |
 
 - [ ] Point the domain's DNS at the site through Cloudflare.
 
@@ -178,5 +180,5 @@ pnpm dev            # API on http://localhost:8787, site on http://localhost:517
 - **Branches:** all work goes to `main`. `live` is what Render, Cloudflare and Supabase deploy from. Never push or promote to `live` without the owner's go-ahead.
 - **Secrets:** they live only in Render and Cloudflare settings, never in the repo or the web bundle.
 - **Wallets:** never ask for a seed phrase, a private key or a wallet signature. The waitlist takes a public address only.
-- **Placeholders:** don't invent values for the token, supply or dates. Leave the placeholders in place.
+- **Placeholders:** don't invent values for the token, chain or dates. Leave the placeholders in place.
 - **OneDrive (local note):** if the repo sits in OneDrive, local `pnpm typecheck` can falsely fail with "No inputs were found". Run the checks in a copy outside OneDrive. CI is not affected.

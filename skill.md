@@ -10,7 +10,7 @@ description: Context for building Stackz, a real-time multiplayer Tetris game wi
 Stackz is real-time multiplayer Tetris. Players compete live, the crowd backs a player with the Stackz in-game token, and the winning side splits the pot. There is also an NFT collection of block-built characters that holders use as their in-game avatar.
 
 - Reference project: github.com/Spagero763/gambit (Blokaz). It is a reference only. Do not copy its branding, and never add Celo, MiniPay or stablecoin code. Stackz uses its own in-game token only.
-- Token name, ticker, chain, NFT supply and mint price are not decided yet. Leave clear placeholders such as `[TOKEN]` and `[SUPPLY]`; never invent values.
+- The X account is **@playstackz** and the NFT supply is **1,500**. Token name, ticker, chain, mint price and Season 0 dates are not decided yet. Leave clear placeholders such as `[TOKEN]`; never invent values.
 
 ## Current focus: the Season 0 waitlist
 
@@ -40,6 +40,7 @@ Build the waitlist site first. Game, betting and minting come later. Do not buil
        2. Like the pinned post
        3. Comment on the pinned post
        4. Repost the pinned post
+     - GO for follow opens `x.com/intent/follow?screen_name=playstackz`; GO for like, comment and repost opens `x.com/playstackz`, where the pinned post sits on top.
      - **03 · Add your wallet:** an EVM `0x` address, typed or pasted. Helper text "Public address only. We never ask for a seed phrase or a signature." Never ask the user to connect a wallet.
    - **Submit button:** "Join the waitlist".
 3. **LEVEL 02 · The match**
@@ -236,7 +237,6 @@ Code lives in `apps/api`. Request/response types are in `packages/shared/src/api
 
 ## Placeholders still open
 
-- Domain, X handle and the pinned-post URL
+- Domain
 - Token name and chain (an EVM chain: wallets are EVM addresses)
-- NFT supply
 - Season 0 dates

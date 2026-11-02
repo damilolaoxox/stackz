@@ -20,7 +20,7 @@ export function Characters() {
           </h2>
         </div>
         <p className="characters__text">
-          [SUPPLY] characters, built from the same blocks you play with. Hold one and it's you in every match.
+          1,500 characters, built from the same blocks you play with. Hold one and it's you in every match.
         </p>
       </div>
       <div className="conveyor" aria-hidden="true">
