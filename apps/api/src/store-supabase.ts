@@ -1,7 +1,8 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import type { CardCache, Entry, Store, TaskRow } from "./store";
+import type { AdminEntry, CardCache, Entry, Store, TaskRow } from "./store";
 
 const ENTRY_COLUMNS = "x_handle, x_avatar_url, wallet, status, created_at";
+const ADMIN_COLUMNS = `${ENTRY_COLUMNS}, tasks`;
 const UNIQUE_VIOLATION = "23505";
 
 export function createSupabaseClient(url: string, serviceRoleKey: string): SupabaseClient {
@@ -68,6 +69,25 @@ export function createSupabaseStore(db: SupabaseClient): Store {
         throw error;
       }
       return { ok: true, entry: data as Entry };
+    },
+
+    async listEntries({ status, limit, offset }) {
+      let q = db.from("waitlist_entries").select(ADMIN_COLUMNS);
+      if (status) q = q.eq("status", status);
+      const { data, error } = await q.order("created_at", { ascending: true }).range(offset, offset + limit - 1);
+      if (error) throw error;
+      return data as AdminEntry[];
+    },
+
+    async setStatus(handle, status) {
+      const { data, error } = await db
+        .from("waitlist_entries")
+        .update({ status })
+        .eq("x_handle", handle)
+        .select(ADMIN_COLUMNS)
+        .maybeSingle();
+      if (error) throw error;
+      return (data as AdminEntry | null) ?? null;
     },
   };
 }

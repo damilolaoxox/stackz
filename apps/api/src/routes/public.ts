@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { handleSchema, type ApiError, type AvatarResponse } from "@stackz/shared";
 import { toDataUri } from "../card";
 import type { AppEnv, Deps } from "../deps";
-import { RateLimiter, rateLimit } from "../rate-limit";
+import { makeLimiter, rateLimit } from "../rate-limit";
 import { cardUrl } from "./waitlist";
 
 function escapeHtml(s: string) {
@@ -12,8 +12,8 @@ function escapeHtml(s: string) {
 /** Avatar lookup, share card PNG and the share page X crawls for the link preview. */
 export function publicRoutes(deps: Deps) {
   const { store, cards, env } = deps;
-  const avatarLimit = new RateLimiter(30, 60_000);
-  const cardLimit = new RateLimiter(60, 60_000);
+  const avatarLimit = makeLimiter(deps.limiter, "avatar", 30, 60_000);
+  const cardLimit = makeLimiter(deps.limiter, "card", 60, 60_000);
   const app = new Hono<AppEnv>();
 
   app.get(

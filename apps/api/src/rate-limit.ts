@@ -1,11 +1,24 @@
 import type { Context, MiddlewareHandler } from "hono";
 import type { ApiError } from "@stackz/shared";
 
+export interface HitResult {
+  ok: boolean;
+  retryAfterSeconds: number;
+}
+
+/** Anything that counts hits per key in a fixed window. */
+export interface Limiter {
+  hit(key: string): HitResult | Promise<HitResult>;
+}
+
+/** Builds a limiter. `name` keeps each limiter's keys apart in a shared store. */
+export type LimiterFactory = (name: string, limit: number, windowMs: number) => Limiter;
+
 /**
- * Fixed-window, in-process limiter. Fine for a single Render instance; move to
- * a shared store (e.g. Redis) before scaling the API horizontally.
+ * Fixed-window, in-process limiter. Fine for a single Render instance. With more than
+ * one instance, set the Upstash env vars so every instance shares counts (redis-limiter.ts).
  */
-export class RateLimiter {
+export class RateLimiter implements Limiter {
   private hits = new Map<string, { count: number; resetAt: number }>();
 
   constructor(
@@ -14,7 +27,7 @@ export class RateLimiter {
     private readonly now: () => number = Date.now,
   ) {}
 
-  hit(key: string): { ok: boolean; retryAfterSeconds: number } {
+  hit(key: string): HitResult {
     const t = this.now();
     let bucket = this.hits.get(key);
     if (!bucket || bucket.resetAt <= t) {
@@ -40,9 +53,19 @@ export function clientIp(c: Context): string {
   return "unknown";
 }
 
-export function rateLimit(limiter: RateLimiter, key: (c: Context) => string | Promise<string>): MiddlewareHandler {
+/** In-memory by default; a shared store when one is configured. */
+export function makeLimiter(
+  factory: LimiterFactory | undefined,
+  name: string,
+  limit: number,
+  windowMs: number,
+): Limiter {
+  return factory ? factory(name, limit, windowMs) : new RateLimiter(limit, windowMs);
+}
+
+export function rateLimit(limiter: Limiter, key: (c: Context) => string | Promise<string>): MiddlewareHandler {
   return async (c, next) => {
-    const r = limiter.hit(await key(c));
+    const r = await limiter.hit(await key(c));
     if (!r.ok) {
       c.header("Retry-After", String(r.retryAfterSeconds));
       return c.json<ApiError>({ error: "rate_limited", retryAfterSeconds: r.retryAfterSeconds }, 429);

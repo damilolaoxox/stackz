@@ -3,6 +3,7 @@ import { createApp } from "./app";
 import { createAvatarImageFetcher, createAvatarLookup } from "./avatar";
 import { renderCard } from "./card";
 import { loadEnv } from "./env";
+import { createRedisLimiterFactory, createUpstashPipeline } from "./redis-limiter";
 import { createMemoryCardCache, createMemoryStore } from "./store";
 import { createSupabaseCardCache, createSupabaseClient, createSupabaseStore } from "./store-supabase";
 import { createTurnstileVerifier } from "./turnstile";
@@ -20,6 +21,12 @@ if (env.STORE === "supabase") {
   cards = createMemoryCardCache();
 }
 
+const limiter =
+  env.UPSTASH_REDIS_REST_URL && env.UPSTASH_REDIS_REST_TOKEN
+    ? createRedisLimiterFactory(createUpstashPipeline(env.UPSTASH_REDIS_REST_URL, env.UPSTASH_REDIS_REST_TOKEN))
+    : undefined;
+console.log(`rate limits: ${limiter ? "shared (Upstash Redis)" : "in memory (this instance only)"}`);
+
 const app = createApp(
   {
     env,
@@ -30,6 +37,7 @@ const app = createApp(
     fetchAvatarImage: createAvatarImageFetcher(env.UNAVATAR_API_KEY),
     renderCard,
     now: () => new Date(),
+    limiter,
   },
   { log: true },
 );

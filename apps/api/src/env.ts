@@ -20,12 +20,26 @@ const envSchema = z
     TURNSTILE_SECRET_KEY: z.string().min(1),
     /** Optional unavatar.io Pro key; the free tier is rate-limited per IP. */
     UNAVATAR_API_KEY: z.string().min(1).optional(),
+    /**
+     * Optional shared rate-limit store (Upstash Redis, REST API). Needed once the API
+     * runs on more than one instance; without it each instance counts on its own.
+     */
+    UPSTASH_REDIS_REST_URL: z.url().optional(),
+    UPSTASH_REDIS_REST_TOKEN: z.string().min(1).optional(),
+    /** Turns on the /admin review routes. Long and random: `openssl rand -hex 32`. */
+    ADMIN_TOKEN: z.string().min(32, "ADMIN_TOKEN must be at least 32 characters").optional(),
   })
   .superRefine((env, ctx) => {
     if (env.STORE === "supabase" && (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY)) {
       ctx.addIssue({
         code: "custom",
         message: "SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required when STORE=supabase",
+      });
+    }
+    if (!env.UPSTASH_REDIS_REST_URL !== !env.UPSTASH_REDIS_REST_TOKEN) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Set both UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN, or neither",
       });
     }
     if (env.NODE_ENV === "production" && env.STORE === "memory") {

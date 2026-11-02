@@ -18,7 +18,20 @@ export interface NewEntry {
   x_handle: string;
   x_avatar_url: string | null;
   wallet: string;
-  tasks: Partial<Record<Task, { go_at: string | null; done_at: string | null }>>;
+  tasks: EntryTasks;
+}
+
+export type EntryTasks = Partial<Record<Task, { go_at: string | null; done_at: string | null }>>;
+
+/** What the admin review sees. The wallet is included; this never goes to public routes. */
+export interface AdminEntry extends Entry {
+  tasks: EntryTasks;
+}
+
+export interface ListEntriesQuery {
+  status?: WaitlistStatus;
+  limit: number;
+  offset: number;
 }
 
 export type CreateResult = { ok: true; entry: Entry } | { ok: false; conflict: "handle" | "wallet" };
@@ -32,6 +45,10 @@ export interface Store {
   completeTask(handle: string, task: Task, at: Date): Promise<TaskRow>;
   getEntry(handle: string): Promise<Entry | null>;
   createEntry(entry: NewEntry): Promise<CreateResult>;
+  /** Admin review: oldest first, optionally filtered by status. */
+  listEntries(query: ListEntriesQuery): Promise<AdminEntry[]>;
+  /** Admin review: returns the updated entry, or null if the handle isn't on the list. */
+  setStatus(handle: string, status: WaitlistStatus): Promise<AdminEntry | null>;
 }
 
 export interface CardCache {
@@ -41,7 +58,8 @@ export interface CardCache {
 
 export function createMemoryStore(): Store {
   const tasks = new Map<string, TaskRow>();
-  const entries = new Map<string, Entry>();
+  const entries = new Map<string, AdminEntry>();
+  const publicEntry = ({ tasks: _tasks, ...e }: AdminEntry): Entry => ({ ...e });
   const key = (handle: string, task: Task) => `${handle}:${task}`;
 
   return {
@@ -61,20 +79,33 @@ export function createMemoryStore(): Store {
     },
     async getEntry(handle) {
       const e = entries.get(handle);
-      return e ? { ...e } : null;
+      return e ? publicEntry(e) : null;
     },
     async createEntry(input) {
       if (entries.has(input.x_handle)) return { ok: false, conflict: "handle" };
       for (const e of entries.values()) if (e.wallet === input.wallet) return { ok: false, conflict: "wallet" };
-      const entry: Entry = {
+      const entry: AdminEntry = {
         x_handle: input.x_handle,
         x_avatar_url: input.x_avatar_url,
         wallet: input.wallet,
         status: "pending",
         created_at: new Date().toISOString(),
+        tasks: structuredClone(input.tasks),
       };
       entries.set(input.x_handle, entry);
-      return { ok: true, entry: { ...entry } };
+      return { ok: true, entry: publicEntry(entry) };
+    },
+    async listEntries({ status, limit, offset }) {
+      return [...entries.values()]
+        .filter((e) => !status || e.status === status)
+        .slice(offset, offset + limit)
+        .map((e) => structuredClone(e));
+    },
+    async setStatus(handle, status) {
+      const e = entries.get(handle);
+      if (!e) return null;
+      e.status = status;
+      return structuredClone(e);
     },
   };
 }

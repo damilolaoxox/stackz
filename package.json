@@ -6,8 +6,10 @@
     "node": ">=22"
   },
   "scripts": {
+    "dev": "pnpm --parallel --filter @stackz/api --filter @stackz/web run dev",
     "dev:api": "pnpm --filter @stackz/api dev",
     "dev:web": "pnpm --filter @stackz/web dev",
+    "admin": "pnpm --silent --filter @stackz/api admin",
     "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r test",

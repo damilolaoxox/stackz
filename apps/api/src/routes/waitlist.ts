@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { joinRequestSchema, TASKS, type ApiError, type JoinResponse } from "@stackz/shared";
 import type { AppEnv, Deps } from "../deps";
-import { RateLimiter, rateLimit } from "../rate-limit";
+import { makeLimiter, rateLimit } from "../rate-limit";
 
 export function cardUrl(apiUrl: string, handle: string) {
   return `${apiUrl.replace(/\/$/, "")}/card/${handle}.png`;
@@ -13,7 +13,7 @@ export function shareUrl(apiUrl: string, handle: string) {
 
 export function waitlistRoutes(deps: Deps) {
   const { store, env } = deps;
-  const perIp = new RateLimiter(10, 10 * 60_000);
+  const perIp = makeLimiter(deps.limiter, "join", 10, 10 * 60_000);
   const app = new Hono<AppEnv>();
 
   app.post(

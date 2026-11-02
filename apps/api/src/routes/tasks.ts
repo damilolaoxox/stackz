@@ -10,7 +10,7 @@ import {
   type TaskStatus,
 } from "@stackz/shared";
 import type { AppEnv, Deps } from "../deps";
-import { RateLimiter, rateLimit } from "../rate-limit";
+import { makeLimiter, rateLimit } from "../rate-limit";
 import type { TaskRow } from "../store";
 
 type TasksEnv = { Variables: AppEnv["Variables"] & { taskRequest: { handle: string; task: Task } } };
@@ -28,7 +28,7 @@ export function secondsRemaining(goAt: string, now: Date, minSeconds: number): n
 
 export function tasksRoutes(deps: Deps) {
   const { store, env, now } = deps;
-  const perHandle = new RateLimiter(30, 60_000);
+  const perHandle = makeLimiter(deps.limiter, "tasks", 30, 60_000);
   const app = new Hono<TasksEnv>();
 
   app.get("/:handle", async (c) => {

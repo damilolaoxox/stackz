@@ -47,6 +47,7 @@ export type ApiErrorCode =
   | "handle_taken"
   | "wallet_taken"
   | "not_found"
+  | "unauthorized"
   | "internal";
 
 export interface ApiError {

@@ -22,4 +22,19 @@ describe("loadEnv", () => {
   it("refuses the memory store in production", () => {
     expect(() => loadEnv({ NODE_ENV: "production", STORE: "memory", TURNSTILE_SECRET_KEY: "x" })).toThrow(/memory/);
   });
+
+  it("needs both Upstash values or neither", () => {
+    const base = { STORE: "memory", TURNSTILE_SECRET_KEY: "x" };
+    expect(() => loadEnv({ ...base, UPSTASH_REDIS_REST_URL: "https://x.upstash.io" })).toThrow(/UPSTASH/);
+    expect(
+      loadEnv({ ...base, UPSTASH_REDIS_REST_URL: "https://x.upstash.io", UPSTASH_REDIS_REST_TOKEN: "t" })
+        .UPSTASH_REDIS_REST_TOKEN,
+    ).toBe("t");
+  });
+
+  it("requires a long ADMIN_TOKEN when one is set", () => {
+    const base = { STORE: "memory", TURNSTILE_SECRET_KEY: "x" };
+    expect(() => loadEnv({ ...base, ADMIN_TOKEN: "short" })).toThrow(/ADMIN_TOKEN/);
+    expect(loadEnv({ ...base, ADMIN_TOKEN: "" }).ADMIN_TOKEN).toBeUndefined();
+  });
 });
