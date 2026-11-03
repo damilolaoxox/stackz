@@ -36,7 +36,7 @@ All of this is merged into `main`, and CI (format, typecheck, tests, build) pass
   - a click sound on buttons and links, never while typing
   - a SOUND ON/OFF toggle
 - Works at 375px wide, touch targets are at least 44px, and reduced motion is respected.
-- Cloudflare config is in place: `wrangler.jsonc` and `public/_headers`.
+- Hosting config is in `render.yaml`: the static site with its rewrite for `/privacy` and its headers, and the API.
 
 ### API — `apps/api` (Hono on Node, for Render)
 
@@ -130,55 +130,53 @@ pnpm dev            # API on http://localhost:8787, site on http://localhost:517
 - [ ] Create the project.
 - [ ] In GitHub → Settings → Environments, create `production` and add the secret `SUPABASE_DB_URL` (the database connection string).
 - [ ] The migration runs automatically the first time `main` is promoted to `live`.
-- [ ] Keep the service-role key for Render. Never put it in the web app.
+- [ ] Keep the service-role key for Render's `stackz-api`. Never put it in the web app.
 
-### Cloudflare Turnstile
+### Hosting: everything on Render
 
-- [ ] Create a widget for the production domain.
-- [ ] The **site key** goes to Cloudflare Pages as `VITE_TURNSTILE_SITE_KEY`.
-- [ ] The **secret key** goes to Render as `TURNSTILE_SECRET_KEY`.
+The site (`stackz-web`, a free static site) and the API (`stackz-api`, Starter plan) are both in `render.yaml` and deploy only from `live`. The domain is bought from a registrar (Render doesn't sell domains). The site goes on the root domain and the API on `api.<domain>`. Do these in order:
 
-### Render (API)
+1. [ ] **Buy the domain** at a registrar.
+2. [ ] **Supabase:** done (section above), including the `SUPABASE_DB_URL` GitHub secret, so the migration runs when `live` is created.
+3. [ ] **Turnstile:** in Cloudflare → Turnstile, add a widget with hostnames `<domain>` and `stackz-web.onrender.com`. Keep the site key and the secret key.
+4. [ ] **Create `live` from `main`** (owner's go-ahead only): `git push origin main:live`. The Blueprint needs the branch to exist.
+5. [ ] **Render → New → Blueprint**, pick this repo. It creates `stackz-web` and `stackz-api` and asks for the `sync: false` values:
 
-- [ ] Go to New → Blueprint and select this repo. It reads `render.yaml`, which uses the `live` branch.
-- [ ] Set these environment variables:
+| Service      | Variable                                             | Value                                                                                  |
+| ------------ | ---------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `stackz-web` | `VITE_API_URL`                                       | `https://api.<domain>`                                                                 |
+| `stackz-web` | `VITE_TURNSTILE_SITE_KEY`                            | Turnstile site key                                                                     |
+| `stackz-web` | `VITE_COMMUNITY_URL`                                 | Optional; leave empty to hide the link                                                 |
+| `stackz-api` | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`          | From the Supabase project                                                              |
+| `stackz-api` | `TURNSTILE_SECRET_KEY`                               | Turnstile secret key                                                                   |
+| `stackz-api` | `ALLOWED_ORIGINS`                                    | `https://<domain>` (no trailing slash)                                                 |
+| `stackz-api` | `SITE_URL`                                           | `https://<domain>`                                                                     |
+| `stackz-api` | `PUBLIC_API_URL`                                     | `https://api.<domain>`                                                                 |
+| `stackz-api` | `UNAVATAR_API_KEY`                                   | Recommended. The free tier is rate-limited per IP, and every lookup comes from Render. |
+| `stackz-api` | `ADMIN_TOKEN`                                        | Optional. Turns on admin review (`pnpm admin`). Generate with `openssl rand -hex 32`.  |
+| `stackz-api` | `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | Optional. Only needed before running more than one API instance.                       |
 
-| Variable                                             | Value                                                                                  |
-| ---------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| `SUPABASE_URL`                                       | From the Supabase project                                                              |
-| `SUPABASE_SERVICE_ROLE_KEY`                          | From the Supabase project                                                              |
-| `TURNSTILE_SECRET_KEY`                               | From the Turnstile widget                                                              |
-| `ALLOWED_ORIGINS`                                    | The site's domain, e.g. `https://stackz.xyz`                                           |
-| `SITE_URL`                                           | The site's URL                                                                         |
-| `PUBLIC_API_URL`                                     | The API's public URL, e.g. `https://api.stackz.xyz`                                    |
-| `UNAVATAR_API_KEY`                                   | Recommended. The free tier is rate-limited per IP, and every lookup comes from Render. |
-| `ADMIN_TOKEN`                                        | Optional. Turns on admin review (`pnpm admin`). Generate with `openssl rand -hex 32`.  |
-| `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | Optional. Only needed before running more than one API instance.                       |
+6. [ ] **Custom domains in Render:** on `stackz-web` add `<domain>` (Render adds `www` and redirects it to the root); on `stackz-api` add `api.<domain>`.
+7. [ ] **DNS at the registrar** (delete any `AAAA` records first; Render is IPv4 only):
 
-- [ ] Optional: a custom domain such as `api.<domain>`.
+| Type  | Host  | Value                             |
+| ----- | ----- | --------------------------------- |
+| A     | `@`   | `216.24.57.1`                     |
+| CNAME | `www` | the site's `onrender.com` address |
+| CNAME | `api` | the API's `onrender.com` address  |
 
-### Cloudflare Pages (site)
+If the domain's DNS is on Cloudflare instead: use a CNAME on `@` to the site's `onrender.com` address, set every record to **DNS only** (grey cloud), and set SSL/TLS to **Full**.
 
-| Setting           | Value                                                                                                             |
-| ----------------- | ----------------------------------------------------------------------------------------------------------------- |
-| Production branch | `live`                                                                                                            |
-| Build command     | `pnpm --filter @stackz/web build`                                                                                 |
-| Output directory  | `apps/web/dist`                                                                                                   |
-| Build variables   | `VITE_API_URL`, `VITE_TURNSTILE_SITE_KEY`, `VITE_COMMUNITY_URL` (optional: `VITE_X_HANDLE`, default `playstackz`) |
-
-- [ ] Point the domain's DNS at the site through Cloudflare.
-
-### Going live
-
-- [ ] Create the `live` branch from `main`. It doesn't exist yet. **Only do this when the owner says so.**
-- [ ] After launch, test the full join flow on the real domain: avatar, the four tasks, Turnstile, the card, and the X share preview.
+8. [ ] **Verify** both domains in Render (Settings → Custom Domains → Verify). Render issues the HTTPS certificates itself.
+9. [ ] **Rebuild the site** if `VITE_API_URL` changed after its first build: `stackz-web` → Manual Deploy → Clear build cache & deploy. `VITE_*` values are baked in at build time.
+10. [ ] **Test on the real domain:** `https://api.<domain>/healthz`, the site, `/privacy`, the avatar, the four tasks, Turnstile, joining, the card, and the X share preview.
 
 ---
 
 ## 5. Rules to keep
 
-- **Branches:** all work goes to `main`. `live` is what Render, Cloudflare and Supabase deploy from. Never push or promote to `live` without the owner's go-ahead.
-- **Secrets:** they live only in Render and Cloudflare settings, never in the repo or the web bundle.
+- **Branches:** all work goes to `main`. `live` is what Render and Supabase deploy from. Never push or promote to `live` without the owner's go-ahead.
+- **Secrets:** they live only in Render's settings, never in the repo or the web bundle.
 - **Wallets:** never ask for a seed phrase, a private key or a wallet signature. The waitlist takes a public address only.
 - **Placeholders:** don't invent values for the token, chain or dates. Leave the placeholders in place.
 - **OneDrive (local note):** if the repo sits in OneDrive, local `pnpm typecheck` can falsely fail with "No inputs were found". Run the checks in a copy outside OneDrive. CI is not affected.

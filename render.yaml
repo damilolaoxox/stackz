@@ -1,5 +1,60 @@
-# Render Blueprint. Deploys ONLY from the `live` branch. Work happens on `main`.
+# Render Blueprint: the waitlist site and the API. Both deploy ONLY from the `live` branch.
+# Work happens on `main`. Custom domains are added in the dashboard (see build.md).
 services:
+  # Waitlist site (apps/web): a free static site.
+  - type: web
+    name: stackz-web
+    runtime: static
+    branch: live
+    autoDeploy: true
+    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm --filter @stackz/web build
+    staticPublishPath: ./apps/web/dist
+    # Only rebuild when something the site uses changes.
+    buildFilter:
+      paths:
+        - apps/web/**
+        - packages/shared/**
+        - package.json
+        - pnpm-lock.yaml
+        - pnpm-workspace.yaml
+        - tsconfig.base.json
+    routes:
+      # Rewrites only apply when no real file exists at the path, so /assets and /sfx are
+      # served as files and /privacy falls through to the app.
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    headers:
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: Referrer-Policy
+        value: strict-origin-when-cross-origin
+      - path: /*
+        name: Permissions-Policy
+        value: camera=(), microphone=(), geolocation=()
+      - path: /assets/*
+        name: Cache-Control
+        value: public, max-age=31536000, immutable
+      - path: /sfx/*
+        name: Cache-Control
+        value: public, max-age=86400
+    envVars:
+      # Read at build time and baked into the bundle. Public values only, never secrets.
+      - key: NODE_VERSION
+        value: "24"
+      # We install with pnpm ourselves in buildCommand.
+      - key: SKIP_INSTALL_DEPS
+        value: "true"
+      - key: VITE_API_URL
+        sync: false
+      - key: VITE_TURNSTILE_SITE_KEY
+        sync: false
+      - key: VITE_COMMUNITY_URL
+        sync: false
+
+  # API (apps/api): Hono on Node.
   - type: web
     name: stackz-api
     runtime: node

@@ -3,7 +3,7 @@
 Real-time multiplayer Tetris where the crowd backs every match. This repo is a pnpm monorepo. Project context and rules live in [`skill.md`](skill.md).
 
 ```
-apps/web/            React + Vite waitlist site (Cloudflare)
+apps/web/            React + Vite waitlist site (Render static site)
 apps/api/            Hono API (Render)
 packages/shared/     zod schemas, API types, brand tokens
 supabase/migrations/ Postgres schema
@@ -12,7 +12,7 @@ supabase/migrations/ Postgres schema
 ## Branches
 
 - `main`: all work. Commits and PRs go here.
-- `live`: what Render, Cloudflare and Supabase deploy from. Only promoted from `main`, and only when the team says so.
+- `live`: what Render and Supabase deploy from. Only promoted from `main`, and only when the team says so.
 
 ## Local development
 

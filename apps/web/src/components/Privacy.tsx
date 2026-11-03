@@ -85,7 +85,7 @@ export function Privacy() {
           <section className="privacy__block">
             <h2>Who helps us run it</h2>
             <p>
-              Cloudflare hosts the site and runs Turnstile. Render runs our API. Supabase stores the waitlist and the
+              Render hosts the site and runs our API. Cloudflare runs Turnstile. Supabase stores the waitlist and the
               cards. unavatar.io looks up profile pictures. The site&apos;s fonts load from Google Fonts. We don&apos;t
               sell your data or share it with anyone else.
             </p>

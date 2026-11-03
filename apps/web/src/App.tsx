@@ -6,7 +6,7 @@ import { LineClearDivider } from "./components/sections/LineClearDivider";
 import { Match } from "./components/sections/Match";
 import { Waitlist } from "./components/waitlist/Waitlist";
 
-/** Matches /privacy and /privacy/ (Cloudflare serves index.html for both). */
+/** Matches /privacy and /privacy/ (Render's rewrite serves index.html for both). */
 const isPrivacy = () => /^\/privacy\/?$/.test(window.location.pathname);
 
 export function App() {
